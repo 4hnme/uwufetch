@@ -38,12 +38,11 @@
 #define PINK "\x1b[38;5;201m"
 #define LPINK "\x1b[38;5;213m"
 
+char MOVE_CURSOR[69];
 #ifdef _WIN32
   #define BLOCK_CHAR "\xdb"     // block char for colors
-char* MOVE_CURSOR = "\033[21C"; // moves the cursor after printing the image or the ascii logo
 #else
   #define BLOCK_CHAR "\u2587"
-char* MOVE_CURSOR = "\033[18C";
 #endif // _WIN32
 
 #ifdef __DEBUG__
@@ -222,6 +221,31 @@ int print_image(struct info* user_info) {
          RED);
 #endif
   return 9;
+}
+
+// Shows if given byte is not a valid utf-8 character but just a part of it
+bool utf8_is_part(char c) {
+  return (c & 0xc0) == 0x80;
+}
+
+// Calculates actual length of an utf-8 encoded string
+int actual_len(char* line) {
+  bool inside_bracket = false;
+  int full_len = strlen(line);
+  int len = 0;
+  for (int i = 0; i < full_len; ++i) {
+    switch (line[i]) {
+      case '{':
+        inside_bracket = true;
+        break;
+      case '}':
+        inside_bracket = false;
+        break;
+      default:
+        if (!inside_bracket & !utf8_is_part(line[i])) len += 1;
+    }
+  }
+  return len;
 }
 
 // Replaces all terms in a string with another term.
@@ -449,8 +473,6 @@ void uwu_pkgman(char* pkgman_name) {
 // uwufies everything
 void uwufy_all(struct info* user_info) {
   LOG_I("uwufing everything");
-  if (strcmp(user_info->os_name, "windows"))
-    MOVE_CURSOR = "\033[21C"; // to print windows logo on not windows systems
   uwu_kernel(user_info->kernel);
   for (int i = 0; user_info->gpu_model[i][0]; i++) uwu_hw(user_info->gpu_model[i]);
   uwu_hw(user_info->cpu_model);
@@ -635,7 +657,11 @@ int print_ascii(struct info* user_info) {
   char buffer[256]; // line buffer
   int line_count = 1;
   printf("\n");
+  int max_len = 0;
+  int len = 0;
   while (fgets(buffer, 256, file)) { // replacing color placecholders
+    len = actual_len(buffer);
+    if (len > max_len) max_len = len;
     replace(buffer, "{NORMAL}", NORMAL);
     replace(buffer, "{BOLD}", BOLD);
     replace(buffer, "{BLACK}", BLACK);
@@ -660,6 +686,7 @@ int print_ascii(struct info* user_info) {
   // Always set color to NORMAL, so there's no need to do this in every ascii file.
   printf(NORMAL);
   fclose(file);
+  sprintf(MOVE_CURSOR, "\033[%dC", max_len);
   return line_count;
 }
 
