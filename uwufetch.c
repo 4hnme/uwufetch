@@ -345,7 +345,8 @@ void uwu_name(struct info* user_info) {
   // Windows
   else STRING_TO_UWU("windows", "WinyandOwOws");
 
-  else sprintf(user_info->os_name, "%s", "unknown");
+  // Unknown
+  else sprintf(user_info->os_name, "%s", "Unknyowon");
 #undef STRING_TO_UWU
 }
 
@@ -630,7 +631,7 @@ int print_ascii(struct info* user_info) {
   FILE* file;
   char ascii_file[1024];
   // First tries to get ascii art file from local directory. Useful for debugging
-  sprintf(ascii_file, "./res/ascii/%s.txt", user_info->os_name);
+  sprintf(ascii_file, "./res/ascii/%s.txt", strlen(user_info->logo) ? user_info->logo : user_info->os_name);
   LOG_V(ascii_file);
   file = fopen(ascii_file, "r");
   if (!file) { // if the file does not exist in the local directory, open it from the installation directory
@@ -717,7 +718,8 @@ void usage(char* arg) {
   LOG_I("printing usage");
   printf("Usage: %s <args>\n"
          "    -c  --config        use custom config path\n"
-         "    -d, --distro        lets you choose the logo to print\n"
+         "    -d, --distro        lets you choose the distro to display\n"
+         "    -a, --ascii         lets you choose the logo to print\n"
          "    -h, --help          prints this help page\n"
 #ifndef __IPHONE__
          "    -i, --image         prints logo as image and use a custom image "
@@ -755,6 +757,7 @@ int main(int argc, char* argv[]) {
   struct configuration config_flags   = parse_config(&user_info, &user_config_file);
   char* custom_distro_name            = NULL;
   char* custom_image_name             = NULL;
+  char* custom_ascii_logo             = NULL;
 
 #ifdef _WIN32
   // packages disabled by default because chocolatey is too slow
@@ -767,6 +770,7 @@ int main(int argc, char* argv[]) {
       {"distro", required_argument, NULL, 'd'},
       {"help", no_argument, NULL, 'h'},
       {"image", optional_argument, NULL, 'i'},
+      {"ascii", required_argument, NULL, 'a'},
       {"list", no_argument, NULL, 'l'},
       {"read-cache", no_argument, NULL, 'r'},
       {"version", no_argument, NULL, 'V'},
@@ -776,9 +780,9 @@ int main(int argc, char* argv[]) {
       {"write-cache", no_argument, NULL, 'w'},
       {0}};
 #ifdef __DEBUG__
-  #define OPT_STRING "c:d:hi::lrVvw"
+  #define OPT_STRING "c:d:ha:i::lrVvw"
 #else
-  #define OPT_STRING "c:d:hi::lrVw"
+  #define OPT_STRING "c:d:ha:i::lrVw"
 #endif
 
   // reading cmdline options
@@ -790,6 +794,9 @@ int main(int argc, char* argv[]) {
       break;
     case 'd': // set the distribution name
       custom_distro_name = optarg;
+      break;
+    case 'a': // set custom ascii logo
+      custom_ascii_logo = optarg;
       break;
     case 'h':
       usage(argv[0]);
@@ -848,6 +855,7 @@ int main(int argc, char* argv[]) {
   }
   if (custom_distro_name) sprintf(user_info.os_name, "%s", custom_distro_name);
   if (custom_image_name) sprintf(user_info.image_name, "%s", custom_image_name);
+  if (custom_ascii_logo) sprintf(user_info.logo, "%s", custom_ascii_logo);
 
   uwufy_all(&user_info);
 

@@ -102,6 +102,7 @@ bool* get_verbose_handle();
 struct info {
   char user[128],  // username
       host[256],   // hostname (computer name)
+      logo[64],    // displayed ascii logo
       shell[64],   // shell name
       model[256],  // model name
       kernel[256], // kernel name (linux 5.x-whatever)
