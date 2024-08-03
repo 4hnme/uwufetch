@@ -631,16 +631,17 @@ int print_ascii(struct info* user_info) {
   FILE* file;
   char ascii_file[1024];
   // First tries to get ascii art file from local directory. Useful for debugging
-  sprintf(ascii_file, "./res/ascii/%s.txt", strlen(user_info->logo) ? user_info->logo : user_info->os_name);
+  char* logo_path = strlen(user_info->logo) ? user_info->logo : user_info->os_name;
+  sprintf(ascii_file, "./res/ascii/%s.txt", logo_path);
   LOG_V(ascii_file);
   file = fopen(ascii_file, "r");
   if (!file) { // if the file does not exist in the local directory, open it from the installation directory
     if (strcmp(user_info->os_name, "android") == 0)
-      sprintf(ascii_file, "/data/data/com.termux/files/usr/lib/uwufetch/ascii/%s.txt", user_info->os_name);
+      sprintf(ascii_file, "/data/data/com.termux/files/usr/lib/uwufetch/ascii/%s.txt", logo_path);
     else if (strcmp(user_info->os_name, "macos") == 0)
-      sprintf(ascii_file, "/usr/local/lib/uwufetch/ascii/%s.txt", user_info->os_name);
+      sprintf(ascii_file, "/usr/local/lib/uwufetch/ascii/%s.txt", logo_path);
     else
-      sprintf(ascii_file, "/usr/lib/uwufetch/ascii/%s.txt", user_info->os_name);
+      sprintf(ascii_file, "/usr/lib/uwufetch/ascii/%s.txt", logo_path);
     LOG_V(ascii_file);
 
     file = fopen(ascii_file, "r");
